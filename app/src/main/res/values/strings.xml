@@ -28,4 +28,7 @@
     Pemograman untuk Perangkat Bergerak 1.\n\nCopyright © 2025-2026 Indra
     Azimi. \nAll right reserved</string>
     <string name="kembali">Kembali</string>
+    <string name="bagikan">Bagikan</string>
+    <string name="bagikan_template">Berat badan: %1$s kg\nTinggi badan: %2$s
+    cm\nJenis kelamin: %3$s\nBMI: %4$.2f\n%5$s</string>
 </resources>
