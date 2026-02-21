@@ -15,7 +15,6 @@ import com.indraazimi.mobpro1.database.CatatanDao
 import com.indraazimi.mobpro1.model.Catatan
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.WhileSubscribed
 import kotlinx.coroutines.flow.stateIn
 
 class MainViewModel(dao: CatatanDao) : ViewModel() {
@@ -25,8 +24,4 @@ class MainViewModel(dao: CatatanDao) : ViewModel() {
         started = SharingStarted.WhileSubscribed(),
         initialValue = emptyList()
     )
-
-    fun getCatatan(id: Long): Catatan? {
-        return data.value.find { it.id == id}
-    }
 }
