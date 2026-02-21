@@ -65,4 +65,8 @@ class MainViewModel : ViewModel() {
             "2026-04-01 12:34:56"
         )
     )
+
+    fun getCatatan(id: Long): Catatan? {
+        return data.find { it.id == id}
+    }
 }
