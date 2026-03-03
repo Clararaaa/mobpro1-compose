@@ -63,8 +63,10 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingExcept
 import com.indraazimi.mobpro1.BuildConfig
 import com.indraazimi.mobpro1.R
 import com.indraazimi.mobpro1.model.Hewan
+import com.indraazimi.mobpro1.model.User
 import com.indraazimi.mobpro1.network.ApiStatus
 import com.indraazimi.mobpro1.network.HewanApi
+import com.indraazimi.mobpro1.network.UserDataStore
 import com.indraazimi.mobpro1.ui.theme.Mobpro1Theme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -74,6 +76,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun MainScreen(){
     val context = LocalContext.current
+    val dataStore = UserDataStore(context)
+    val user by dataStore.userFlow.collectAsState(User())
 
     Scaffold(
         topBar = {
@@ -87,7 +91,12 @@ fun MainScreen(){
                 ),
                 actions = {
                     IconButton(onClick = {
-                        CoroutineScope(Dispatchers.IO).launch { signIn(context) }
+                        if (user.email.isEmpty()) {
+                            CoroutineScope(Dispatchers.IO).launch { signIn(context, dataStore) }
+                        }
+                        else {
+                            Log.d("SIGN-IN", "User: $user")
+                        }
                     }) {
                         Icon(
                             painter = painterResource(R.drawable.account_circle_24),
@@ -185,7 +194,7 @@ fun ListItem(hewan: Hewan) {
     }
 }
 
-private suspend fun signIn(context: Context) {
+private suspend fun signIn(context: Context, dataStore: UserDataStore) {
     val googleOption: GetGoogleIdOption = GetGoogleIdOption.Builder()
         .setFilterByAuthorizedAccounts(false)
         .setServerClientId(BuildConfig.API_KEY)
@@ -198,19 +207,25 @@ private suspend fun signIn(context: Context) {
     try {
         val credentialManager = CredentialManager.create(context)
         val result = credentialManager.getCredential(context, request)
-        handleSignIn(result)
+        handleSignIn(result, dataStore)
     } catch (e: GetCredentialException) {
         Log.e("SIGN-IN", "Error: ${e.errorMessage}")
     }
 }
 
-private fun handleSignIn(result: GetCredentialResponse) {
+private suspend fun handleSignIn(
+    result: GetCredentialResponse,
+    dataStore: UserDataStore
+) {
     val credential = result.credential
     if (credential is CustomCredential &&
         credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
         try {
             val googleId = GoogleIdTokenCredential.createFrom(credential.data)
-            Log.d("SIGN-IN", "User email: ${googleId.id}")
+            val nama = googleId.displayName ?: ""
+            val email = googleId.id
+            val photoUrl = googleId.profilePictureUri.toString()
+            dataStore.saveData(User(nama, email, photoUrl))
         } catch (e: GoogleIdTokenParsingException) {
             Log.e("SIGN-IN", "Error: ${e.message}")
         }
